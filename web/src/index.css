@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-neon-blue: var(--theme-neon-blue);
+  --color-neon-purple: var(--theme-neon-purple);
+  --color-neon-green: var(--theme-neon-green);
+  --color-deep-space: var(--theme-deep-space);
+  --color-glass-bg: var(--theme-glass-bg);
+  --font-orbitron: var(--theme-font-heading);
+  --font-rajdhani: var(--theme-font-body);
+
+  --shadow-neon: 0 0 20px var(--theme-neon-blue-glow);
+}
+
+@layer base {
+
+  :root,
+  .theme-original {
+    /* Original Cyberpunk Theme */
+    --theme-font-heading: 'Orbitron', sans-serif;
+    --theme-font-body: 'Rajdhani', sans-serif;
+    --theme-neon-blue: #00f3ff;
+    --theme-neon-purple: #bc13fe;
+    --theme-neon-green: #39ff14;
+    --theme-deep-space: #050510;
+    --theme-glass-bg: rgba(10, 10, 25, 0.7);
+    --theme-glass-border: rgba(0, 243, 255, 0.2);
+    --theme-neon-blue-glow: rgba(0, 243, 255, 0.6);
+
+    --theme-text-primary: #ffffff;
+    --theme-text-muted: #9ca3af;
+    /* gray-400 */
+
+    --theme-bg-gradient-1: rgba(76, 29, 149, 0.4);
+    --theme-bg-gradient-2: rgba(56, 189, 248, 0.2);
+    --theme-bg-grid: white;
+  }
+
+  .theme-light {
+    /* Standard Light Theme */
+    --theme-font-heading: 'Bell MT', serif;
+    --theme-font-body: 'Bell MT', serif;
+    --theme-neon-blue: #2563eb;
+    /* blue-600 */
+    --theme-neon-purple: #7e22ce;
+    /* purple-700 */
+    --theme-neon-green: #16a34a;
+    /* green-600 */
+    --theme-deep-space: #f3f4f6;
+    /* gray-100 */
+    --theme-glass-bg: rgba(255, 255, 255, 0.9);
+    --theme-glass-border: rgba(0, 0, 0, 0.1);
+    --theme-neon-blue-glow: rgba(37, 99, 235, 0.3);
+
+    /* Invert Tailwind Core Colors for this session */
+    --color-white: #111827;
+    /* Make 'text-white' render as very dark gray */
+    --color-black: #ffffff;
+    /* Make 'bg-black' render as white */
+
+    /* Hand-mapped overrides for specific grays if needed */
+    --theme-text-primary: #111827;
+    /* gray-900 */
+    --theme-text-muted: #4b5563;
+    /* gray-600 */
+
+    --theme-bg-gradient-1: rgba(0, 0, 0, 0);
+    /* Disable gradients */
+    --theme-bg-gradient-2: rgba(0, 0, 0, 0);
+    --theme-bg-grid: rgba(0, 0, 0, 0.05);
+  }
+
+  .theme-dark {
+    /* Standard Dark Theme (Non-Neon) */
+    --theme-font-heading: 'Bell MT', serif;
+    --theme-font-body: 'Bell MT', serif;
+    --theme-neon-blue: #3b82f6;
+    /* blue-500 */
+    --theme-neon-purple: #a855f7;
+    /* purple-500 */
+    --theme-neon-green: #22c55e;
+    /* green-500 */
+    --theme-deep-space: #0f172a;
+    /* slate-900 */
+    --theme-glass-bg: rgba(30, 41, 59, 0.8);
+    /* slate-800 */
+    --theme-glass-border: rgba(255, 255, 255, 0.1);
+    --theme-neon-blue-glow: rgba(59, 130, 246, 0.3);
+
+    --theme-text-primary: #f8fafc;
+    /* slate-50 */
+    --theme-text-muted: #cbd5e1;
+    /* slate-300 */
+
+    --theme-bg-gradient-1: rgba(0, 0, 0, 0);
+    /* Disable gradients */
+    --theme-bg-gradient-2: rgba(0, 0, 0, 0);
+    --theme-bg-grid: rgba(255, 255, 255, 0.02);
+  }
+
+  body {
+    @apply bg-deep-space text-[#e0e0ff] font-rajdhani transition-colors duration-500;
+    color: var(--theme-text-primary);
+    background-image:
+      radial-gradient(circle at 20% 30%, var(--theme-bg-gradient-1) 0%, transparent 40%),
+      radial-gradient(circle at 80% 60%, var(--theme-bg-gradient-2) 0%, transparent 40%),
+      radial-gradient(var(--theme-bg-grid) 1px, transparent 1px),
+      radial-gradient(var(--theme-bg-grid) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 550px 550px, 350px 350px;
+    background-position: 0 0, 0 0, 0 0, 40px 60px;
+  }
+
+  /* Reset any hardcoded white texts in body scope to dynamic */
+  .text-white {
+    color: var(--color-white);
+  }
+
+  .text-gray-400 {
+    color: var(--theme-text-muted);
+  }
+
+  .bg-black {
+    background-color: var(--color-black);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-orbitron;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-neon-blue);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-neon-purple);
+  }
+}
+
+@layer components {
+  .btn-neon {
+    @apply px-4 py-2 border border-neon-blue text-neon-blue rounded transition-all duration-300 hover:bg-neon-blue/10 hover:shadow-neon hover:text-white hover:border-white uppercase tracking-wider font-semibold;
+  }
+
+  .card-glass {
+    @apply bg-glass-bg backdrop-blur-md border border-white/5 rounded-lg p-6 shadow-xl;
+  }
+
+  .input-cyber {
+    @apply bg-deep-space/80 border-b-2 border-gray-700 text-neon-blue p-2 focus:outline-none focus:border-neon-purple transition-colors w-full;
+  }
+
+  /* Glitch Effect */
+  .glitch-text {
+    position: relative;
+    color: white;
+  }
+
+  .glitch-text::before,
+  .glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .glitch-text::before {
+    left: 2px;
+    text-shadow: -1px 0 #ff00c1;
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim 5s infinite linear alternate-reverse;
+  }
+
+  .glitch-text::after {
+    left: -2px;
+    text-shadow: -1px 0 #00fff9;
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim2 5s infinite linear alternate-reverse;
+  }
+
+  @keyframes glitch-anim {
+    0% {
+      clip: rect(31px, 9999px, 91px, 0);
+    }
+
+    20% {
+      clip: rect(86px, 9999px, 80px, 0);
+    }
+
+    40% {
+      clip: rect(10px, 9999px, 71px, 0);
+    }
+
+    60% {
+      clip: rect(38px, 9999px, 7px, 0);
+    }
+
+    80% {
+      clip: rect(89px, 9999px, 51px, 0);
+    }
+
+    100% {
+      clip: rect(6px, 9999px, 60px, 0);
+    }
+  }
+
+  @keyframes glitch-anim2 {
+    0% {
+      clip: rect(83px, 9999px, 80px, 0);
+    }
+
+    20% {
+      clip: rect(1px, 9999px, 49px, 0);
+    }
+
+    40% {
+      clip: rect(84px, 9999px, 1px, 0);
+    }
+
+    60% {
+      clip: rect(86px, 9999px, 74px, 0);
+    }
+
+    80% {
+      clip: rect(34px, 9999px, 46px, 0);
+    }
+
+    100% {
+      clip: rect(13px, 9999px, 2px, 0);
+    }
+  }
+}

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # EduCore - AI Learning Platform
 
 ## Overview
@@ -31,9 +30,10 @@ python server/main.py
 
 **Terminal 2 (Frontend):**
 ```bash
-streamlit run client/app.py
+cd web
+npm run dev -- --port 3000
 ```
-*Frontend runs on http://localhost:8501*
+*Frontend runs on http://localhost:3000*
 
 ## System Architecture
 
@@ -49,6 +49,3 @@ streamlit run client/app.py
 4. The Planner Agent creates a roadmap (Console logs show progress).
 5. The Content Agent generates the first chapter.
 6. (Stub) Media agent video generation is available in code but not connected to the UI flow in this MVP to save time.
-=======
-# firstTrial
->>>>>>> 8fbd2f33007d81ef6d72f7bea48a234fbf1539d7

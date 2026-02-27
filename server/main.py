@@ -14,21 +14,24 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import os
 import shutil
 import uuid
 import hmac
 import hashlib
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+# Configure Cloudinary (Reads from CLOUDINARY_URL env var automatically if set)
+# We will instruct the user to set this in their Render environment.
+cloudinary.config(secure=True)
 
 app = FastAPI(title="EduCore AI Platform (MongoDB)")
 
 # CORS Configuration
 origins = [
-    "http://localhost:5173", # React Dev Server
-    "http://localhost:5174", # React Dev Server (Alternative)
-    "http://localhost:8501", # Streamlit (Legacy)
-    "http://localhost:3000",
+    "*", # Allow all for easy production access (Vercel)
 ]
 
 app.add_middleware(
@@ -38,19 +41,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Mount static files
-static_dir = os.path.join(os.getcwd(), "client", "static")
-os.makedirs(static_dir, exist_ok=True)
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-# Video uploads directory
-videos_dir = os.path.join(static_dir, "videos")
-os.makedirs(videos_dir, exist_ok=True)
-
-# Cover image uploads directory
-covers_dir = os.path.join(static_dir, "covers")
-os.makedirs(covers_dir, exist_ok=True)
 
 # Dependency
 get_db = database_mongo.get_database
@@ -71,19 +61,23 @@ async def upload_video(file: UploadFile = File(...),
     
     # Generate unique filename
     ext = os.path.splitext(file.filename)[1] or ".mp4"
-    unique_name = f"{uuid.uuid4().hex}{ext}"
-    file_path = os.path.join(videos_dir, unique_name)
+    unique_name = f"educore_video_{uuid.uuid4().hex}"
     
-    # Save file
+    # Upload to Cloudinary
     try:
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # Use resource_type='video' for mp4/webm etc.
+        upload_result = cloudinary.uploader.upload(
+            file.file, 
+            resource_type="video",
+            public_id=unique_name,
+            folder="educore/videos"
+        )
+        video_url = upload_result.get("secure_url")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save video: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload video to Cloudinary: {str(e)}")
     finally:
         file.file.close()
-    
-    video_url = f"/static/videos/{unique_name}"
+
     return {"video_url": video_url, "filename": file.filename}
 
 @app.post("/auth/token")
@@ -876,13 +870,20 @@ def upload_cover_image(course_id: str, file: UploadFile = File(...),
         raise HTTPException(status_code=400, detail="File must be an image (JPEG, PNG, WebP, GIF)")
     
     ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-    filename = f"{course_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(covers_dir, filename)
+    unique_name = f"cover_{course_id}_{uuid.uuid4().hex[:8]}"
     
-    with open(filepath, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file.file,
+            public_id=unique_name,
+            folder="educore/covers"
+        )
+        url_path = upload_result.get("secure_url")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload cover to Cloudinary: {str(e)}")
+    finally:
+        file.file.close()
     
-    url_path = f"/static/covers/{filename}"
     db.courses.update_one({"_id": ObjectId(course_id)}, {"$set": {"thumbnail_url": url_path}})
     
     return {"message": "Cover uploaded", "thumbnail_url": url_path}
@@ -1173,13 +1174,20 @@ def upload_cert_logo(course_id: str, file: UploadFile = File(...),
         raise HTTPException(status_code=400, detail="File must be an image")
     
     ext = file.filename.split(".")[-1] if "." in file.filename else "png"
-    filename = f"logo_{course_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(cert_assets_dir, filename)
+    unique_name = f"logo_{course_id}_{uuid.uuid4().hex[:8]}"
     
-    with open(filepath, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file.file,
+            public_id=unique_name,
+            folder="educore/cert_assets"
+        )
+        url_path = upload_result.get("secure_url")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload logo to Cloudinary: {str(e)}")
+    finally:
+        file.file.close()
     
-    url_path = f"/static/cert_assets/{filename}"
     db.certificate_templates.update_one(
         {"course_id": course_id},
         {"$set": {"logo_url": url_path, "course_id": course_id, "org_id": current_user.id}},
@@ -1199,13 +1207,20 @@ def upload_cert_bg(course_id: str, file: UploadFile = File(...),
         raise HTTPException(status_code=400, detail="File must be an image (JPEG, PNG, WebP)")
     
     ext = file.filename.split(".")[-1] if "." in file.filename else "png"
-    filename = f"certbg_{course_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(cert_assets_dir, filename)
+    unique_name = f"certbg_{course_id}_{uuid.uuid4().hex[:8]}"
+
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file.file,
+            public_id=unique_name,
+            folder="educore/cert_assets"
+        )
+        url_path = upload_result.get("secure_url")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload background to Cloudinary: {str(e)}")
+    finally:
+        file.file.close()
     
-    with open(filepath, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    
-    url_path = f"/static/cert_assets/{filename}"
     db.certificate_templates.update_one(
         {"course_id": course_id},
         {"$set": {"custom_bg_url": url_path, "course_id": course_id, "org_id": current_user.id}},
@@ -1295,111 +1310,115 @@ def get_student_exam(course_id: str,
 def submit_exam(course_id: str, submission: schemas.ExamSubmission,
                 current_user: models_mongo.UserModel = Depends(auth.get_current_active_user),
                 db = Depends(get_db)):
-    
-    exam = db.exams.find_one({"course_id": course_id})
-    if not exam:
-        raise HTTPException(status_code=404, detail="Exam not found")
-    
-    config = exam["config"]
-    if not config.get("enabled"):
-        raise HTTPException(status_code=400, detail="Exam is disabled")
+    try:
+        exam = db.exams.find_one({"course_id": course_id})
+        if not exam:
+            raise HTTPException(status_code=404, detail="Exam not found")
         
-    # Check max attempts
-    attempts = db.exam_results.count_documents({"course_id": course_id, "user_id": current_user.id})
-    
-    # Check if already passed
-    passed_check = db.exam_results.find_one({"course_id": course_id, "user_id": current_user.id, "passed": True})
-    if passed_check:
-        raise HTTPException(status_code=400, detail="You have already passed this exam")
-        
-    if attempts >= config["max_attempts"]:
-        raise HTTPException(status_code=400, detail="Max attempts reached")
-        
-    # Grading Logic
-    total_score = 0
-    total_points = 0
-    analysis = []
-    
-    questions_map = {q["id"]: q for q in config["questions"]}
-    
-    for q_id, q_data in questions_map.items():
-        total_points += q_data["points"]
-        user_ans = submission.items.get(q_id)
-        
-        is_correct = False
-        feedback = "Incorrect"
-        
-        # Grading based on type
-        if q_data["type"] in ["mcq", "tf", "msq"]:
-            correct_set = set(q_data["correct_answers"])
-            # Normalize user_ans to list of ints
-            if isinstance(user_ans, int): 
-                user_set = {user_ans}
-            elif isinstance(user_ans, list):
-                user_set = set(user_ans)
-            else:
-                user_set = set()
+        config = exam["config"]
+        if not config.get("enabled"):
+            raise HTTPException(status_code=400, detail="Exam is disabled")
             
-            if user_set == correct_set:
-                is_correct = True
-                total_score += q_data["points"]
-                feedback = "Correct"
+        # Check max attempts
+        attempts = db.exam_results.count_documents({"course_id": course_id, "user_id": current_user.id})
         
-        elif q_data["type"] == "text":
-            # Simple keyword matching for MVP (or just mark as manual review needed?)
-            # For now: auto-mark correct if not empty (placeholder) or exact match if keywords provided?
-            # User requirement: "final output... complete analysis".
-            # Let's assume manual grading not in scope for MVP automation -> mark as 0 or full?
-            # Let's give points if length > 10 chars as a heuristic for now.
-             if user_ans and len(str(user_ans)) > 10:
-                 is_correct = True # Very naive
-                 total_score += q_data["points"]
-                 feedback = "Review Pending (Prov. Correct)"
+        # Check if already passed
+        passed_check = db.exam_results.find_one({"course_id": course_id, "user_id": current_user.id, "passed": True})
+        if passed_check:
+            raise HTTPException(status_code=400, detail="You have already passed this exam")
+            
+        if attempts >= config["max_attempts"]:
+            raise HTTPException(status_code=400, detail="Max attempts reached")
+            
+        # Grading Logic
+        total_score = 0
+        total_points = 0
+        analysis = []
         
-        analysis.append({
-            "question_id": q_id,
-            "question": q_data["question"],
-            "user_answer": user_ans,
-            "correct": is_correct,
-            "feedback": feedback
-        })
+        questions_map = {q["id"]: q for q in config["questions"]}
         
-    percentage = (total_score / total_points * 100) if total_points > 0 else 0
-    passed = percentage >= config["passing_score"]
-    
-    credibility_score = max(0, 100 - (submission.malpractice_count * 10))
-    
-    # Auto-fail if malpractice count > 3?
-    # User said "thrice the test automatically...". Does it mean auto-submit? Yes.
-    # The frontend submits. Backend records it.
-    
-    result_doc = {
-        "course_id": course_id,
-        "user_id": current_user.id,
-        "score": total_score,
-        "total_points": total_points,
-        "percentage": percentage,
-        "passed": passed,
-        "attempts": attempts + 1,
-        "malpractice_count": submission.malpractice_count,
-        "credibility_score": credibility_score,
-        "analysis": analysis,
-        "timestamp": datetime.utcnow().isoformat()
-    }
-    
-    db.exam_results.insert_one(result_doc)
-    
-    return {
-        "score": total_score,
-        "total_points": total_points,
-        "percentage": percentage,
-        "passed": passed,
-        "attempts": attempts + 1,
-        "malpractice_count": submission.malpractice_count,
-        "credibility_score": credibility_score,
-        "analysis": analysis,
-        "timestamp": result_doc["timestamp"]
-    }
+        for q_id, q_data in questions_map.items():
+            total_points += q_data["points"]
+            user_ans = submission.items.get(q_id)
+            
+            is_correct = False
+            feedback = "Incorrect"
+            
+            # Grading based on type
+            if q_data["type"] in ["mcq", "tf", "msq"]:
+                correct_set = set(q_data["correct_answers"])
+                # Normalize user_ans to list of ints
+                if isinstance(user_ans, int): 
+                    user_set = {user_ans}
+                elif isinstance(user_ans, list):
+                    user_set = set(user_ans)
+                else:
+                    user_set = set()
+                
+                if user_set == correct_set:
+                    is_correct = True
+                    total_score += q_data["points"]
+                    feedback = "Correct"
+            
+            elif q_data["type"] == "text":
+                # Simple keyword matching for MVP (or just mark as manual review needed?)
+                # For now: auto-mark correct if not empty (placeholder) or exact match if keywords provided?
+                # User requirement: "final output... complete analysis".
+                # Let's assume manual grading not in scope for MVP automation -> mark as 0 or full?
+                # Let's give points if length > 10 chars as a heuristic for now.
+                 if user_ans and len(str(user_ans)) > 10:
+                     is_correct = True # Very naive
+                     total_score += q_data["points"]
+                     feedback = "Review Pending (Prov. Correct)"
+            
+            analysis.append({
+                "question_id": q_id,
+                "question": q_data["question"],
+                "user_answer": user_ans,
+                "correct": is_correct,
+                "feedback": feedback
+            })
+            
+        percentage = (total_score / total_points * 100) if total_points > 0 else 0
+        passed = percentage >= config["passing_score"]
+        
+        credibility_score = max(0, 100 - (submission.malpractice_count * 10))
+        
+        # Auto-fail if malpractice count > 3?
+        # User said "thrice the test automatically...". Does it mean auto-submit? Yes.
+        # The frontend submits. Backend records it.
+        
+        result_doc = {
+            "course_id": course_id,
+            "user_id": current_user.id,
+            "score": total_score,
+            "total_points": total_points,
+            "percentage": percentage,
+            "passed": passed,
+            "attempts": attempts + 1,
+            "malpractice_count": submission.malpractice_count,
+            "credibility_score": credibility_score,
+            "analysis": analysis,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        db.exam_results.insert_one(result_doc)
+        
+        return {
+            "score": total_score,
+            "total_points": total_points,
+            "percentage": percentage,
+            "passed": passed,
+            "attempts": attempts + 1,
+            "malpractice_count": submission.malpractice_count,
+            "credibility_score": credibility_score,
+            "analysis": analysis,
+            "timestamp": result_doc["timestamp"]
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/courses/{course_id}/exam/result")
 def get_last_exam_result(course_id: str,
@@ -1474,10 +1493,15 @@ def get_certificate(course_id: str,
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     
-    # Get org name
+    # Get org name or Platform name
     creator = db.users.find_one({"_id": ObjectId(course["user_id"])})
-    org_name = creator["username"] if creator else "Unknown Organization"
     
+    # If the user creating the course is an organization, use their name. 
+    # Otherwise, it's an AI generated/self-generated course, so use the platform name.
+    if creator and creator.get("role") == "organization":
+        org_name = creator["username"]
+    else:
+        org_name = "EduCore"
     # Get template
     template = db.certificate_templates.find_one({"course_id": course_id})
     if not template:
@@ -1520,6 +1544,69 @@ def get_certificate(course_id: str,
             "logo_url": template.get("logo_url"),
             "custom_bg_url": template.get("custom_bg_url")
         }
+    }
+
+# --- Certificate Verification ---
+
+@app.get("/certificates/verify/{cert_id}")
+def verify_certificate(cert_id: str, db = Depends(get_db)):
+    """Public endpoint to verify a certificate's authenticity."""
+    cert = db.certificates.find_one({"certificate_id": cert_id})
+    if not cert:
+        raise HTTPException(status_code=404, detail="Invalid Certificate ID or Certificate not found.")
+        
+    course_id = cert["course_id"]
+    user_id = cert["user_id"]
+    
+    # 1. Course Details
+    course = db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Associated course not found.")
+        
+    # Get Module Count
+    module_count = db.chapters.count_documents({"course_id": course_id})
+    
+    # 2. Quiz Performance (Average)
+    quizzes = list(db.quiz_results.find({"course_id": course_id, "user_id": user_id}))
+    avg_quiz_score = 0
+    if len(quizzes) > 0:
+        total_q_score = sum((q["score"] / q["total_questions"] * 100) if q["total_questions"] > 0 else 0 for q in quizzes)
+        avg_quiz_score = round(total_q_score / len(quizzes), 2)
+        
+    # 3. Final Exam Result
+    exam_result = db.exam_results.find_one(
+        {"course_id": course_id, "user_id": user_id, "passed": True},
+        sort=[("timestamp", -1)]
+    )
+    
+    exam_data = None
+    if exam_result:
+        exam_data = {
+            "score": exam_result["score"],
+            "total_points": exam_result["total_points"],
+            "percentage": round(exam_result["percentage"], 2),
+            "credibility_score": exam_result.get("credibility_score", 100),
+            "timestamp": exam_result["timestamp"]
+        }
+
+    return {
+        "certificate": {
+            "id": cert["certificate_id"],
+            "student_name": cert["student_name"],
+            "issued_at": cert["issued_at"]
+        },
+        "course": {
+            "title": course["topic"],
+            "description": course.get("description", "A comprehensive study program."),
+            "org_name": cert["org_name"],
+            "module_count": module_count,
+            "grade_level": course["grade_level"]
+        },
+        "performance": {
+            "avg_quiz_score": avg_quiz_score,
+            "quizzes_completed": len(quizzes)
+        },
+        "exam": exam_data
     }
 
 # --- Marketplace Endpoints ---

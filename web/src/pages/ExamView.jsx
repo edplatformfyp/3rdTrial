@@ -44,7 +44,9 @@ const ExamView = () => {
         };
 
         try {
-            const res = await axios.post(`http://localhost:8000/courses/${courseId}/exam/submit`, payload);
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}/exam/submit`, payload, {
+                withCredentials: true
+            });
             navigate(`/course/${courseId}/exam/result`, { state: { result: res.data } });
         } catch (err) {
             alert("Submission failed. Please try again or contact support.");
@@ -53,13 +55,13 @@ const ExamView = () => {
     };
 
     const addWarning = (reason) => {
-        if (warnings >= 3) return;
-        const msg = `Warning ${warnings + 1}/3: ${reason}`;
+        if (warnings >= 5) return;
+        const msg = `Warning ${warnings + 1}/5: ${reason}`;
 
         // Use functional update to check fresh state if needed, but here we trigger side effects
         setWarnings(prev => {
             const newCount = prev + 1;
-            if (newCount >= 4 && !submitting) {
+            if (newCount >= 6 && !submitting) {
                 // Defer alert to avoid state update conflict
                 setTimeout(() => {
                     alert("Too many violations. Auto-submitting exam.");
@@ -90,7 +92,9 @@ const ExamView = () => {
     useEffect(() => {
         const fetchExam = async () => {
             try {
-                const res = await axios.get(`http://localhost:8000/courses/${courseId}/exam`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}/exam`, {
+                    withCredentials: true
+                });
                 setExamData(res.data);
                 setTimeLeft(res.data.time_limit_minutes * 60);
             } catch (err) {
@@ -343,9 +347,6 @@ const ExamView = () => {
                                     ) : (
                                         <div className="space-y-2">
                                             {q.type === 'tf' ? ['True', 'False'].map((opt, oIdx) => (
-                                                // T/F Options render (using index 0 for True, 1 for False usually, or string matching)
-                                                // Better usage: match string if options provided, or 0/1 if fixed logic.
-                                                // Org editor saved as indices 0/1. Students see strings.
                                                 <label key={opt} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${answers[q.id] === oIdx ? 'bg-neon-blue/20 border-neon-blue' : 'bg-black/20 border-white/10 hover:border-white/30'}`}>
                                                     <input
                                                         type="radio"
@@ -359,7 +360,7 @@ const ExamView = () => {
                                                     </div>
                                                     <span>{opt}</span>
                                                 </label>
-                                            )) : q.options.map((opt, oIdx) => (
+                                            )) : (q.options && q.options.length > 0) ? q.options.map((opt, oIdx) => (
                                                 <label key={oIdx} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${q.type === 'msq'
                                                     ? (answers[q.id]?.includes(oIdx) ? 'bg-neon-blue/20 border-neon-blue' : 'bg-black/20 border-white/10 hover:border-white/30')
                                                     : (answers[q.id] === oIdx ? 'bg-neon-blue/20 border-neon-blue' : 'bg-black/20 border-white/10 hover:border-white/30')
@@ -385,7 +386,7 @@ const ExamView = () => {
                                                     </div>
                                                     <span>{opt}</span>
                                                 </label>
-                                            ))}
+                                            )) : <span className="text-gray-500">No options available</span>}
                                         </div>
                                     )}
                                 </div>

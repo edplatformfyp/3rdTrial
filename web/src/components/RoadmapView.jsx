@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Map, CheckCircle, Circle, PlayCircle, ChevronLeft, Award, Download, Loader2, X, FileText } from 'lucide-react';
 import ContentView from './ContentView';
 import html2canvas from 'html2canvas';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const RoadmapView = ({ courseId }) => {
     const navigate = useNavigate();
@@ -27,7 +28,7 @@ const RoadmapView = ({ courseId }) => {
         const fetchCourse = async () => {
             setLoading(true);
             try {
-                const res = await axios.get(`http://localhost:8000/courses/${courseId}`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}`);
                 setCourse(res.data);
                 // Default select first chapter if none selected
                 if (res.data.chapters && res.data.chapters.length > 0) {
@@ -48,7 +49,7 @@ const RoadmapView = ({ courseId }) => {
         if (!courseId) return;
         const checkCert = async () => {
             try {
-                const res = await axios.get(`http://localhost:8000/courses/${courseId}/certificate/check`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}/certificate/check`);
                 setCertEligible(res.data.eligible);
                 setCertProgress({ completed: res.data.completed, total: res.data.total });
                 setExamStatus({ required: res.data.exam_required, passed: res.data.exam_passed });
@@ -62,7 +63,7 @@ const RoadmapView = ({ courseId }) => {
     const handleViewCertificate = async () => {
         setLoadingCert(true);
         try {
-            const res = await axios.get(`http://localhost:8000/courses/${courseId}/certificate`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}/certificate`);
             setCertData(res.data);
             setShowCert(true);
         } catch (err) {
@@ -261,7 +262,7 @@ const RoadmapView = ({ courseId }) => {
                             {/* Content */}
                             <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 48 }}>
                                 {certData.template.logo_url && (
-                                    <img src={`http://localhost:8000${certData.template.logo_url}`} alt="Logo" style={{ width: 64, height: 64, objectFit: 'contain', marginBottom: 12 }} />
+                                    <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${certData.template.logo_url}`} alt="Logo" style={{ width: 64, height: 64, objectFit: 'contain', marginBottom: 12 }} />
                                 )}
                                 <div style={{ fontSize: 40, marginBottom: 8 }}>🏆</div>
                                 <h1 style={{ fontSize: 32, fontWeight: 800, color: certData.template.accent_color, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 24, textAlign: 'center' }}>
@@ -280,12 +281,26 @@ const RoadmapView = ({ courseId }) => {
                                         <div style={{ width: 140, borderTop: `1px solid ${certData.template.accent_color}60`, paddingTop: 8, fontSize: 11, opacity: 0.6 }}>Date</div>
                                         <div style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>{new Date(certData.issued_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
                                     </div>
-                                    <div style={{ fontSize: 10, opacity: 0.3, fontFamily: 'monospace' }}>ID: {certData.certificate_id}</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                                        <div style={{ padding: 4, backgroundColor: 'white', borderRadius: 4 }}>
+                                            <QRCodeCanvas
+                                                value={`${window.location.origin}/verify/${certData.certificate_id}`}
+                                                size={64}
+                                                level={"L"}
+                                            />
+                                        </div>
+                                        <div style={{ fontSize: 10, opacity: 0.6, fontFamily: 'monospace', textAlign: 'center' }}>
+                                            ID: {certData.certificate_id} <br /> Verify Online
+                                        </div>
+                                    </div>
                                     <div style={{ textAlign: 'center' }}>
                                         <div style={{ width: 140, borderTop: `1px solid ${certData.template.accent_color}60`, paddingTop: 8, fontSize: 11, opacity: 0.6 }}>
                                             {certData.template.signature_text || 'Authorized Signatory'}
                                         </div>
-                                        <div style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>{certData.org_name}</div>
+                                        <div style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>
+                                            <span style={{ fontSize: 10, opacity: 0.6 }}>Issued by </span><br />
+                                            <strong>{certData.org_name}</strong>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

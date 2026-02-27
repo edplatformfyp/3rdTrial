@@ -11,7 +11,7 @@ const NewModule = ({ onCourseCreated }) => {
         setLoading(true);
         try {
             const payload = { topic, grade_level: grade };
-            const res = await axios.post('http://localhost:8000/courses/generate', payload);
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/generate`, payload);
 
             // Notify parent to refresh list and select new course
             if (res.data.course_id) {

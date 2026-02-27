@@ -20,8 +20,8 @@ const StudentProfile = () => {
             const headers = { Authorization: `Bearer ${token}` };
 
             const [reqRes, msgRes] = await Promise.all([
-                axios.get('http://localhost:8000/student/requests', { headers }),
-                axios.get('http://localhost:8000/student/messages', { headers })
+                axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/requests`, { headers }),
+                axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/messages`, { headers })
             ]);
 
             setRequests(reqRes.data);
@@ -36,7 +36,7 @@ const StudentProfile = () => {
     const handleApprove = async (parentId) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.post(`http://localhost:8000/student/approve-request?parent_id=${parentId}`, {}, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/approve-request?parent_id=${parentId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             alert("Parent linked successfully!");

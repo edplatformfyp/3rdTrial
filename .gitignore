@@ -42,3 +42,13 @@ debug_*.py
 # OS
 .DS_Store
 Thumbs.db
+
+# Node & React (Vite)
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm/
+
+# Local Backend Media
+server/static/

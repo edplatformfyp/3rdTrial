@@ -11,7 +11,7 @@ const Sidebar = ({ onSelectCourse, selectedCourseId, onViewChange, onToggle, vie
 
     const fetchCourses = async () => {
         try {
-            const res = await axios.get('http://localhost:8000/courses');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses`);
             setCourses(res.data);
         } catch (err) {
             console.error("Failed to fetch courses", err);
@@ -35,7 +35,7 @@ const Sidebar = ({ onSelectCourse, selectedCourseId, onViewChange, onToggle, vie
         if (!window.confirm("Delete this course?")) return;
 
         try {
-            await axios.delete(`http://localhost:8000/courses/${courseId}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}`);
             // Refresh list
             fetchCourses();
             // If selected was deleted, clear selection

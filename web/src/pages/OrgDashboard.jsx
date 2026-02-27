@@ -15,7 +15,7 @@ const OrgDashboard = () => {
     const fetchAnalytics = async () => {
         setLoadingAnalytics(true);
         try {
-            const res = await axios.get('http://localhost:8000/org/analytics');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/analytics`);
             setAnalytics(res.data);
         } catch (err) {
             console.error('Failed to fetch analytics', err);
@@ -139,7 +139,7 @@ const CoursesTab = () => {
     const fetchCourses = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:8000/org/courses');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses`);
             setCourses(res.data);
         } catch (err) {
             console.error(err);
@@ -153,7 +153,7 @@ const CoursesTab = () => {
     const handleDelete = async (id) => {
         if (!confirm("Delete course completely?")) return;
         try {
-            await axios.delete(`http://localhost:8000/courses/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${id}`);
             fetchCourses();
         } catch (err) {
             alert("Delete failed");
@@ -171,7 +171,7 @@ const CoursesTab = () => {
 
     const handlePublish = async (courseId) => {
         try {
-            await axios.put(`http://localhost:8000/org/courses/${courseId}/publish`);
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/publish`);
             fetchCourses();
         } catch (err) {
             alert('Failed to toggle publish status');
@@ -185,7 +185,7 @@ const CoursesTab = () => {
         }
 
         try {
-            await axios.post('http://localhost:8000/org/courses/create', newCourseData);
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/create`, newCourseData);
             setShowCreateModal(false);
             setNewCourseData({ title: '', grade_level: '', description: '', structure_type: 'week', price: 0 });
             fetchCourses();
@@ -406,7 +406,7 @@ const VerificationsTab = () => {
     const fetchOrders = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:8000/org/orders', { withCredentials: true });
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/orders`, { withCredentials: true });
             setOrders(res.data);
         } catch (err) {
             console.error('Failed to fetch orders', err);
@@ -422,7 +422,7 @@ const VerificationsTab = () => {
     const handleVerification = async (orderId, action) => {
         setProcessingId(orderId);
         try {
-            const res = await axios.post(`http://localhost:8000/org/orders/${orderId}/verify`, { action }, { withCredentials: true });
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/orders/${orderId}/verify`, { action }, { withCredentials: true });
             if (action === 'approve') {
                 alert(`Approved! Activation link generated:\n\nhttp://localhost:5173${res.data.activation_link}`);
             } else {

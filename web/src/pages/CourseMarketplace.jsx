@@ -25,7 +25,7 @@ const CourseMarketplace = () => {
 
     const fetchMarketplaceCourses = async () => {
         try {
-            const res = await axios.get('http://localhost:8000/marketplace/courses');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/marketplace/courses`);
             setCourses(res.data);
         } catch (err) {
             console.error('Failed to fetch marketplace courses', err);
@@ -47,7 +47,7 @@ const CourseMarketplace = () => {
         if (!enrollModalCourse) return;
         setEnrollingId(enrollModalCourse.id);
         try {
-            const res = await axios.post('http://localhost:8000/marketplace/orders/create',
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/marketplace/orders/create`,
                 { course_id: enrollModalCourse.id },
                 { withCredentials: true }
             );
@@ -70,7 +70,7 @@ const CourseMarketplace = () => {
         try {
             const payload = { course_id: courseId };
             if (key) payload.access_key = key;
-            await axios.post('http://localhost:8000/marketplace/enroll', payload);
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/marketplace/enroll`, payload);
             setSuccessId(courseId);
             setEnrollModalCourse(null);
             // Update the course list to reflect enrollment
@@ -303,7 +303,7 @@ const CourseCard = ({ course, onEnroll, enrolling, justEnrolled }) => {
             <div className="h-36 relative overflow-hidden">
                 {course.thumbnail_url ? (
                     <img
-                        src={`http://localhost:8000${course.thumbnail_url}`}
+                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${course.thumbnail_url}`}
                         alt={course.topic}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

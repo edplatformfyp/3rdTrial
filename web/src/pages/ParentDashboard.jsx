@@ -17,7 +17,7 @@ const ParentDashboard = () => {
     useEffect(() => {
         const fetchChildren = async () => {
             try {
-                const res = await axios.get('http://localhost:8000/parent/children');
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/parent/children`);
                 setChildren(res.data);
                 if (res.data.length > 0) {
                     setSelectedChildId(res.data[0].id);
@@ -35,7 +35,7 @@ const ParentDashboard = () => {
         const fetchProgress = async () => {
             setLoading(true);
             try {
-                const res = await axios.get(`http://localhost:8000/parent/child/${selectedChildId}/progress`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/parent/child/${selectedChildId}/progress`);
                 setChildData(res.data);
             } catch (err) {
                 console.error("Failed to load progress", err);
@@ -51,7 +51,7 @@ const ParentDashboard = () => {
         if (!secretId) return;
 
         try {
-            await axios.post(`http://localhost:8000/parent/link-request?secret_id=${secretId}`);
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/parent/link-request?secret_id=${secretId}`);
             alert("Link request sent! Ask your child to approve it.");
         } catch (err) {
             alert("Failed to send link request: " + (err.response?.data?.detail || err.message));
@@ -221,7 +221,7 @@ const MessageSection = ({ childId }) => {
         setSending(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.post(`http://localhost:8000/parent/message?receiver_id=${childId}&content=${encodeURIComponent(message)}`, {}, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/parent/message?receiver_id=${childId}&content=${encodeURIComponent(message)}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             alert("Message sent!");

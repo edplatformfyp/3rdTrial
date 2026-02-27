@@ -16,7 +16,7 @@ const NotesView = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:8000/notes', {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notes`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotes(res.data);
@@ -33,7 +33,7 @@ const NotesView = () => {
         try {
             const token = localStorage.getItem('token');
             // Course ID is optional, sending generic note for now
-            await axios.post('http://localhost:8000/notes',
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notes`,
                 {
                     title: "Quick Note",
                     content: newNote,
@@ -54,7 +54,7 @@ const NotesView = () => {
         if (!confirm("Delete this note?")) return;
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:8000/notes/${noteId}`, {
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notes/${noteId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotes(notes.filter(n => n.id !== noteId));

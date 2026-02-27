@@ -12,6 +12,7 @@ import ExamView from './pages/ExamView';
 import ExamResult from './pages/ExamResult';
 import MockPayment from './pages/MockPayment';
 import ActivationPage from './pages/ActivationPage';
+import CertificateVerification from './pages/CertificateVerification';
 import { ThemeProvider } from './context/ThemeContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -82,6 +83,7 @@ function App() {
                 <ActivationPage />
               </ProtectedRoute>
             } />
+            <Route path="/verify/:certId" element={<CertificateVerification />} />
             <Route path="/" element={<Navigate to="/student" />} />
           </Routes>
         </AuthProvider>

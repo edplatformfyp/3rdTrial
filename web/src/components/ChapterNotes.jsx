@@ -22,7 +22,7 @@ const ChapterNotes = ({ courseId, chapterId }) => {
     const fetchNotes = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:8000/notes?chapter_id=${chapterId}`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notes?chapter_id=${chapterId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotes(res.data);
@@ -59,7 +59,7 @@ const ChapterNotes = ({ courseId, chapterId }) => {
                 metadata: noteType === 'sketch' ? { snapshot: sketchData } : null
             };
 
-            await axios.post('http://localhost:8000/notes', payload, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notes`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -84,7 +84,7 @@ const ChapterNotes = ({ courseId, chapterId }) => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:8000/notes/${noteId}`, {
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notes/${noteId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotes(notes.filter(n => n.id !== noteId));

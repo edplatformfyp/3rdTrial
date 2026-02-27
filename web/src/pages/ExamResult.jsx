@@ -16,11 +16,11 @@ const ExamResult = () => {
             // Fetch last result if not passed in state
             const fetchResult = async () => {
                 try {
-                    const res = await axios.get(`http://localhost:8000/courses/${courseId}/exam/result`);
+                    const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}/exam/result`);
                     setResult(res.data);
                 } catch (err) {
                     // Redirect if no result
-                    navigate(`/course/${courseId}`);
+                    navigate('/student');
                 } finally {
                     setLoading(false);
                 }
@@ -35,7 +35,7 @@ const ExamResult = () => {
     return (
         <div className="min-h-screen bg-black text-white p-8 font-sans">
             <div className="max-w-4xl mx-auto space-y-8">
-                <button onClick={() => navigate(`/course/${courseId}`)} className="flex items-center gap-2 text-gray-400 hover:text-white mb-4">
+                <button onClick={() => navigate('/student')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-4">
                     <ChevronLeft size={20} /> Back to Course
                 </button>
 

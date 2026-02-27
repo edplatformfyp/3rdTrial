@@ -52,7 +52,7 @@ const OrgCourseEditor = () => {
 
     const fetchCertTemplate = async () => {
         try {
-            const res = await axios.get(`http://localhost:8000/org/courses/${courseId}/certificate-template`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/certificate-template`);
             setCertTemplate(res.data);
         } catch (err) {
             console.error('Failed to load cert template', err);
@@ -62,7 +62,7 @@ const OrgCourseEditor = () => {
     const saveCertTemplate = async () => {
         setSavingCert(true);
         try {
-            await axios.post(`http://localhost:8000/org/courses/${courseId}/certificate-template`, certTemplate);
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/certificate-template`, certTemplate);
         } catch (err) {
             alert('Failed to save template');
         } finally {
@@ -76,7 +76,7 @@ const OrgCourseEditor = () => {
         const fd = new FormData();
         fd.append('file', file);
         try {
-            const res = await axios.post(`http://localhost:8000/upload/cert-logo/${courseId}`, fd);
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/upload/cert-logo/${courseId}`, fd);
             setCertTemplate(prev => ({ ...prev, logo_url: res.data.logo_url }));
         } catch (err) {
             alert('Failed to upload logo');
@@ -89,7 +89,7 @@ const OrgCourseEditor = () => {
         const fd = new FormData();
         fd.append('file', file);
         try {
-            const res = await axios.post(`http://localhost:8000/upload/cert-template/${courseId}`, fd);
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/upload/cert-template/${courseId}`, fd);
             setCertTemplate(prev => ({ ...prev, custom_bg_url: res.data.custom_bg_url }));
         } catch (err) {
             alert('Failed to upload background');
@@ -111,7 +111,7 @@ const OrgCourseEditor = () => {
 
     const fetchExamConfig = async () => {
         try {
-            const res = await axios.get(`http://localhost:8000/org/courses/${courseId}/exam-config`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/exam-config`);
             setExamConfig(res.data);
         } catch (err) {
             console.error('Failed to load exam config', err);
@@ -121,7 +121,7 @@ const OrgCourseEditor = () => {
     const saveExamConfig = async () => {
         setSavingExam(true);
         try {
-            await axios.post(`http://localhost:8000/org/courses/${courseId}/exam-config`, examConfig);
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/exam-config`, examConfig);
             setShowExamConfig(false);
         } catch (err) {
             alert('Failed to save exam config');
@@ -140,7 +140,7 @@ const OrgCourseEditor = () => {
     const fetchKeys = async () => {
         setLoadingKeys(true);
         try {
-            const res = await axios.get(`http://localhost:8000/org/courses/${courseId}/keys`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/keys`);
             setCourseKeys(res.data);
         } catch (err) {
             console.error('Failed to load keys', err);
@@ -152,7 +152,7 @@ const OrgCourseEditor = () => {
     const generateKeys = async () => {
         setGeneratingKeys(true);
         try {
-            await axios.post(`http://localhost:8000/org/courses/${courseId}/keys`, { count: keyCount });
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/keys`, { count: keyCount });
             fetchKeys();
         } catch (err) {
             alert('Failed to generate keys');
@@ -168,7 +168,7 @@ const OrgCourseEditor = () => {
     const fetchCourseDetails = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`http://localhost:8000/courses/${courseId}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}`);
             setCourse(res.data);
             setChapters(res.data.chapters || []);
 
@@ -187,7 +187,7 @@ const OrgCourseEditor = () => {
 
     const fetchModuleDetails = async (cId, mId) => {
         try {
-            const res = await axios.get(`http://localhost:8000/org/courses/${cId}/modules/${mId}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${cId}/modules/${mId}`);
             setEditTitle(res.data.title || '');
             setEditContent(res.data.content_markdown || '');
             setEditVideo(res.data.video_url || '');
@@ -209,7 +209,7 @@ const OrgCourseEditor = () => {
 
         setGenerating(true);
         try {
-            await axios.post(`http://localhost:8000/org/courses/${courseId}/plan`, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/plan`, {
                 topic: course.topic,
                 grade_level: course.grade_level || "General",
                 structure_type: course.structure_type || "week"
@@ -231,7 +231,7 @@ const OrgCourseEditor = () => {
         if (!newModuleTitle.trim()) return;
 
         try {
-            await axios.post(`http://localhost:8000/org/courses/${courseId}/modules`, {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/modules`, {
                 title: newModuleTitle.trim(),
                 order_index: chapters.length,
                 description: newModuleDesc.trim()
@@ -250,7 +250,7 @@ const OrgCourseEditor = () => {
         e.stopPropagation();
         if (!confirm("Delete this module permanently?")) return;
         try {
-            await axios.delete(`http://localhost:8000/org/courses/${courseId}/modules/${moduleId}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/modules/${moduleId}`);
             if (selectedChapterId === moduleId) {
                 setSelectedChapterId(null);
                 setEditContent('');
@@ -274,7 +274,7 @@ const OrgCourseEditor = () => {
     const confirmRename = async (moduleId) => {
         if (!renameValue.trim()) return;
         try {
-            await axios.put(`http://localhost:8000/org/courses/${courseId}/modules/${moduleId}`, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/modules/${moduleId}`, {
                 content_markdown: null, // don't overwrite
                 title: renameValue.trim()
             });
@@ -298,7 +298,7 @@ const OrgCourseEditor = () => {
             if (editQuiz.length > 0) {
                 payload.quiz = editQuiz;
             }
-            await axios.put(`http://localhost:8000/org/courses/${courseId}/modules/${selectedChapterId}`, payload);
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/modules/${selectedChapterId}`, payload);
             setSaving(false);
             // Brief success indicator
             alert("✅ Content saved successfully!");
@@ -394,7 +394,7 @@ const OrgCourseEditor = () => {
                         {course.thumbnail_url ? (
                             <div className="h-32 overflow-hidden relative">
                                 <img
-                                    src={`http://localhost:8000${course.thumbnail_url}`}
+                                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${course.thumbnail_url}`}
                                     alt="Cover"
                                     className="w-full h-full object-cover"
                                 />
@@ -413,7 +413,7 @@ const OrgCourseEditor = () => {
                                                 const fd = new FormData();
                                                 fd.append('file', file);
                                                 try {
-                                                    await axios.post(`http://localhost:8000/upload/cover/${courseId}`, fd);
+                                                    await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/upload/cover/${courseId}`, fd);
                                                     fetchCourseDetails();
                                                 } catch (err) {
                                                     alert('Failed to upload cover image');
@@ -447,7 +447,7 @@ const OrgCourseEditor = () => {
                                             const fd = new FormData();
                                             fd.append('file', file);
                                             try {
-                                                await axios.post(`http://localhost:8000/upload/cover/${courseId}`, fd);
+                                                await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/upload/cover/${courseId}`, fd);
                                                 fetchCourseDetails();
                                             } catch (err) {
                                                 alert('Failed to upload cover image');
@@ -564,7 +564,7 @@ const OrgCourseEditor = () => {
                                                 <button
                                                     onClick={async () => {
                                                         try {
-                                                            await axios.put(`http://localhost:8000/org/courses/${courseId}/modules/${selectedChapterId}`, {
+                                                            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/modules/${selectedChapterId}`, {
                                                                 video_url: ''
                                                             });
                                                             setEditVideo('');
@@ -580,7 +580,7 @@ const OrgCourseEditor = () => {
                                                 </button>
                                             </div>
                                             <video
-                                                src={`http://localhost:8000${editVideo}`}
+                                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${editVideo}`}
                                                 controls
                                                 className="w-full rounded-lg max-h-[200px] bg-black"
                                             />
@@ -599,13 +599,13 @@ const OrgCourseEditor = () => {
                                                     try {
                                                         const formData = new FormData();
                                                         formData.append('file', file);
-                                                        const res = await axios.post('http://localhost:8000/upload/video', formData, {
+                                                        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/upload/video`, formData, {
                                                             headers: { 'Content-Type': 'multipart/form-data' }
                                                         });
                                                         setEditVideo(res.data.video_url);
                                                         setVideoFileName(res.data.filename);
                                                         // Auto-save video to backend so it persists
-                                                        await axios.put(`http://localhost:8000/org/courses/${courseId}/modules/${selectedChapterId}`, {
+                                                        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/org/courses/${courseId}/modules/${selectedChapterId}`, {
                                                             video_url: res.data.video_url
                                                         });
                                                     } catch (err) {
@@ -912,7 +912,7 @@ const CertificateEditorModal = ({ template, setTemplate, onSave, saving, onClose
                 <div>
                     <label className="block text-xs text-gray-400 mb-1">Organization Logo</label>
                     <div className="flex items-center gap-3">
-                        {t.logo_url && <img src={`http://localhost:8000${t.logo_url}`} alt="Logo" className="w-12 h-12 object-contain rounded border border-white/10 bg-white/5" />}
+                        {t.logo_url && <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${t.logo_url}`} alt="Logo" className="w-12 h-12 object-contain rounded border border-white/10 bg-white/5" />}
                         <label className="cursor-pointer text-xs text-neon-blue border border-neon-blue/30 rounded px-3 py-1.5 hover:bg-neon-blue/10 transition-colors flex items-center gap-1">
                             <Upload size={12} /> {t.logo_url ? 'Change' : 'Upload Logo'}
                             <input type="file" accept="image/*" className="hidden" onChange={onLogoUpload} />
@@ -924,7 +924,7 @@ const CertificateEditorModal = ({ template, setTemplate, onSave, saving, onClose
                 <div>
                     <label className="block text-xs text-gray-400 mb-1">Custom Background Image <span className="text-gray-600">(replaces solid color)</span></label>
                     <div className="flex items-center gap-3">
-                        {t.custom_bg_url && <img src={`http://localhost:8000${t.custom_bg_url}`} alt="BG" className="w-16 h-10 object-cover rounded border border-white/10" />}
+                        {t.custom_bg_url && <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${t.custom_bg_url}`} alt="BG" className="w-16 h-10 object-cover rounded border border-white/10" />}
                         <label className="cursor-pointer text-xs text-purple-400 border border-purple-400/30 rounded px-3 py-1.5 hover:bg-purple-400/10 transition-colors flex items-center gap-1">
                             <ImagePlus size={12} /> {t.custom_bg_url ? 'Change' : 'Upload Background'}
                             <input type="file" accept="image/*" className="hidden" onChange={onBgUpload} />
@@ -996,7 +996,7 @@ const CertificateEditorModal = ({ template, setTemplate, onSave, saving, onClose
                     <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 48 }}>
                         {/* Logo */}
                         {t.logo_url && (
-                            <img src={`http://localhost:8000${t.logo_url}`} alt="Logo" style={{ width: 64, height: 64, objectFit: 'contain', marginBottom: 12 }} />
+                            <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${t.logo_url}`} alt="Logo" style={{ width: 64, height: 64, objectFit: 'contain', marginBottom: 12 }} />
                         )}
 
                         {/* Award Icon */}

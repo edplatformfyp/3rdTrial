@@ -19,7 +19,7 @@ const MockPayment = () => {
         setLoading(true);
         setError(null);
         try {
-            await axios.post(`http://localhost:8000/marketplace/orders/${sessionId}/pay`, {}, { withCredentials: true });
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/marketplace/orders/${sessionId}/pay`, {}, { withCredentials: true });
             setSuccess(true);
         } catch (err) {
             setError(err.response?.data?.detail || 'Payment simulation failed.');

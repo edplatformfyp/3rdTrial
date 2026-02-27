@@ -21,7 +21,7 @@ const StudentDashboard = () => {
     useEffect(() => {
         const fetchPendingTokens = async () => {
             try {
-                const res = await axios.get('http://localhost:8000/marketplace/tokens/pending', { withCredentials: true });
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/marketplace/tokens/pending`, { withCredentials: true });
                 setPendingTokens(res.data);
             } catch (err) {
                 console.error('Failed to fetch pending tokens', err);

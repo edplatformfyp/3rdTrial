@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { CheckCircle, AlertTriangle, Loader2, ArrowRight } from 'lucide-react';
@@ -13,6 +13,9 @@ const ActivationPage = () => {
     const [status, setStatus] = useState('processing'); // 'processing', 'success', 'error'
     const [message, setMessage] = useState('Validating your secure enrollment token...');
 
+    // Prevent double execution in React Strict Mode
+    const hasActivated = useRef(false);
+
     useEffect(() => {
         if (!token || !signature) {
             setStatus('error');
@@ -20,9 +23,12 @@ const ActivationPage = () => {
             return;
         }
 
+        if (hasActivated.current) return;
+        hasActivated.current = true;
+
         const activateToken = async () => {
             try {
-                const res = await axios.post('http://localhost:8000/marketplace/activate', {
+                const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/marketplace/activate`, {
                     token_value: token,
                     signature: signature
                 }, { withCredentials: true });

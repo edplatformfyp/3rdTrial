@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
             try {
-                const res = await axios.get('http://localhost:8000/users/me');
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/users/me`);
                 setUser(res.data);
             } catch (error) {
                 console.error("Auth check failed:", error);
@@ -46,15 +46,27 @@ export const AuthProvider = ({ children }) => {
         formData.append('username', username);
         formData.append('password', password);
 
-        const res = await axios.post('http://localhost:8000/auth/token', formData);
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/token`, formData);
         const { access_token, role } = res.data;
+
+        // Immediately configure axios headers for the subsequent request
+        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+        localStorage.setItem('token', access_token);
         setToken(access_token);
-        // User will be fetched by effect
+
+        // Fetch User directly so ProtectedRoute doesn't redirect before useEffect fires
+        try {
+            const userRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/users/me`);
+            setUser(userRes.data);
+        } catch (error) {
+            console.error("Auth check failed during login:", error);
+        }
+
         return role;
     };
 
     const register = async (userData) => {
-        const res = await axios.post('http://localhost:8000/auth/register', userData);
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/register`, userData);
         return res.data;
     };
 

@@ -3,6 +3,11 @@ import axios from 'axios';
 import { Loader2, BookOpen, Video, PenTool, ChevronLeft, ChevronRight } from 'lucide-react';
 import ChapterNotes from './ChapterNotes';
 
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+
 const ContentView = ({ courseId, chapterId, chapter }) => {
     const [content, setContent] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -35,7 +40,7 @@ const ContentView = ({ courseId, chapterId, chapter }) => {
     const fetchContent = async () => {
         setLoading(true);
         try {
-            const res = await axios.post(`http://localhost:8000/courses/${courseId}/chapters/${chapterId}/generate`);
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/courses/${courseId}/chapters/${chapterId}/generate`);
             setContent(res.data);
         } catch (err) {
             console.error("Failed to load content", err);
@@ -124,7 +129,7 @@ const SlideDeck = ({ content, index, setIndex }) => {
         const lines = s.trim().split('\n');
         return {
             title: lines[0],
-            body: lines.slice(1).join('\n')
+            body: lines.slice(1).join('\n').replace(/^[ \t]+/gm, '')
         };
     });
 
@@ -157,8 +162,19 @@ const SlideDeck = ({ content, index, setIndex }) => {
 
                 <h2 className="text-3xl md:text-4xl font-orbitron text-neon-blue mb-8 text-center">{currentSlide.title}</h2>
 
-                <div className="prose prose-invert prose-lg max-w-none text-gray-200 leading-relaxed whitespace-pre-wrap">
-                    {currentSlide.body}
+                <div className="prose prose-invert prose-lg max-w-none text-gray-200 leading-relaxed overflow-x-auto">
+                    <ReactMarkdown
+                        remarkPlugins={[remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                        components={{
+                            img: ({ node, ...props }) => <img {...props} className="rounded-lg shadow-lg my-6 max-h-[400px] object-cover mx-auto" />,
+                            p: ({ node, ...props }) => <p {...props} className="mb-4" />,
+                            ul: ({ node, ...props }) => <ul {...props} className="list-disc pl-6 mb-4 space-y-2" />,
+                            li: ({ node, ...props }) => <li {...props} className="marker:text-neon-blue" />
+                        }}
+                    >
+                        {currentSlide.body}
+                    </ReactMarkdown>
                 </div>
             </div>
         </div>
@@ -172,12 +188,12 @@ const VideoPlayer = ({ topic, content }) => {
     const generateVideo = async () => {
         setGenerating(true);
         try {
-            const res = await axios.post('http://localhost:8000/generate/video', {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/generate/video`, {
                 topic,
                 content_markdown: content, // sending full markdown
                 chapter_title: topic
             });
-            setVideoUrl("http://localhost:8000" + res.data.video_url);
+            setVideoUrl(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}` + res.data.video_url);
         } catch (err) {
             alert("Video generation failed");
         } finally {
@@ -219,7 +235,7 @@ const QuizInterface = ({ courseId, chapterId, quizData }) => {
     useEffect(() => {
         const fetchResult = async () => {
             try {
-                const res = await axios.get(`http://localhost:8000/quizzes/${chapterId}/result`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/quizzes/${chapterId}/result`);
                 if (res.data) {
                     setScore(res.data.score);
                     setSubmitted(true);
@@ -244,7 +260,7 @@ const QuizInterface = ({ courseId, chapterId, quizData }) => {
                 course_id: courseId,
                 answers: answers
             };
-            const res = await axios.post('http://localhost:8000/quizzes/submit', payload);
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/quizzes/submit`, payload);
             setScore(res.data.score);
             setSubmitted(true);
         } catch (err) {

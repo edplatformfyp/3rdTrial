@@ -1103,10 +1103,7 @@ def get_org_students(current_user: models_mongo.UserModel = Depends(auth.get_cur
 
 # --- Certificate Endpoints ---
 
-# Cert logos/backgrounds directory
-cert_assets_dir = os.path.join(static_dir, "cert_assets")
-os.makedirs(cert_assets_dir, exist_ok=True)
-
+# Cert logos/backgrounds directory (handled by Cloudinary)
 @app.post("/org/courses/{course_id}/certificate-template")
 def save_certificate_template(course_id: str, 
                                template: schemas.CertificateTemplateUpdate,

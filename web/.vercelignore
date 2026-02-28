@@ -1,0 +1,6 @@
+requirements.txt
+server/
+server.py
+main.py
+app.py
+*.py

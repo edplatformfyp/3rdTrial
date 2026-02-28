@@ -103,7 +103,6 @@ networkx==3.5
 numba==0.61.2
 numpy==2.2.6
 openai==2.20.0
-openai-whisper @ git+https://github.com/openai/whisper.git@c0d2f624c09dc18e709e37c2ad90c039a4eb72a2
 opencv-contrib-python==4.13.0.92
 opencv-python-headless==4.13.0.92
 packaging==25.0

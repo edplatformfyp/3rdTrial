@@ -133,8 +133,6 @@ pymongo==4.16.0
 PyMuPDF==1.26.1
 PyMySQL==1.1.1
 pyparsing==3.3.2
-pypiwin32==223
-python-certifi-win32==1.6.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
 python-jose==3.5.0
